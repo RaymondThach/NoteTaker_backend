@@ -1,11 +1,12 @@
 import express from 'express';
 
-// Import App routes
+//Import App routes
 import note from './notes.js';
 import openapi from './openapi.js';
 
-const port = process.env.PORT || 3000;
-
+//Local Host Port
+const port = process.env.PORT;
+//Iniate express for routing
 const app = express();
 
 // Connect App routes

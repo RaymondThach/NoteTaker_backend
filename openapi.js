@@ -1,3 +1,4 @@
+//Display the API documentation when the root route is accessed or redirection from other pattern matches
 import express from 'express';
 import { join, dirname } from 'path';
 import swaggerUi from 'swagger-ui-express';

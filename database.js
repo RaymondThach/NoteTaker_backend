@@ -46,60 +46,6 @@ export default class Database {
         return result.rowsAffected[0];
     }
 
-//   async create(data) {
-//     const request = this.poolconnection.request();
-
-//     request.input('firstName', sql.NVarChar(255), data.firstName);
-//     request.input('lastName', sql.NVarChar(255), data.lastName);
-
-//     const result = await request.query(
-//       `INSERT INTO Person (firstName, lastName) VALUES (@firstName, @lastName)`
-//     );
-
-//     return result.rowsAffected[0];
-//   }
-
-//   async readAll() {
-//     const request = this.poolconnection.request();
-//     const result = await request.query(`SELECT * FROM Person`);
-
-//     return result.recordsets[0];
-//   }
-
-//   async read(id) {
-//     const request = this.poolconnection.request();
-//     const result = await request
-//       .input('id', sql.Int, +id)
-//       .query(`SELECT * FROM Person WHERE id = @id`);
-
-//     return result.recordset[0];
-//   }
-
-//   async update(id, data) {
-//     const request = this.poolconnection.request();
-
-//     request.input('id', sql.Int, +id);
-//     request.input('firstName', sql.NVarChar(255), data.firstName);
-//     request.input('lastName', sql.NVarChar(255), data.lastName);
-
-//     const result = await request.query(
-//       `UPDATE Person SET firstName=@firstName, lastName=@lastName WHERE id = @id`
-//     );
-
-//     return result.rowsAffected[0];
-//   }
-
-//   async delete(id) {
-//     const idAsNumber = Number(id);
-
-//     const request = this.poolconnection.request();
-//     const result = await request
-//       .input('id', sql.Int, idAsNumber)
-//       .query(`DELETE FROM Person WHERE id = @id`);
-
-//     return result.rowsAffected[0];
-//   }
-
     //Create table of users, cascades to NotesTable
     async createUsersTable() {
         this.executeQuery(
@@ -107,13 +53,13 @@ export default class Database {
             BEGIN
             CREATE TABLE UsersTable (
                 id int NOT NULL IDENTITY UNIQUE, 
-                userName TEXT NOT NULL,
+                userName varchar(255) NOT NULL,
                 PRIMARY KEY (id) 
                 );
             END`
         )
         .then(() => {
-            console.log('Users Table created');
+            console.log('Users table created');
         })
         .catch((err) => {
             // Table may already exist
@@ -129,8 +75,8 @@ export default class Database {
             CREATE TABLE NotesTable (
                 id int NOT NULL IDENTITY UNIQUE, 
                 userId int NOT NULL, 
-                noteName TEXT NOT NULL,
-                note TEXT
+                noteName varchar(255) NOT NULL,
+                note varchar(255)
                 PRIMARY KEY (id),
                 FOREIGN KEY (userId) REFERENCES UsersTable(id)
                 ON DELETE CASCADE
@@ -139,11 +85,78 @@ export default class Database {
             END`
         )
         .then(() => {
-            console.log('Notes Table created');
+            console.log('Notes table created');
         })
         .catch((err) => {
             // Table may already exist
             console.error(`Error creating table: ${err}`);
+        });
+    }
+
+    //Create a user from the client's authenticated username if not already in UsersTable
+    async createUser(data) {
+        this.executeQuery(
+        `IF NOT EXISTS (SELECT * FROM UsersTable WHERE userName = '${data.userName}')
+        INSERT INTO UsersTable (userName) VALUES ('${data.userName}')`
+        )
+        .then(() => {
+            console.log('User created');
+        })
+        .catch((err) => {
+            console.error(`Error creating user: ${err}`);
+        });
+    }
+
+    //Get all notes owned by authenticated user from NotesTable
+    async allNotes(userId) {
+        this.executeQuery(
+        `SELECT * FROM NotesTable WHERE userId=${userId}`
+        )
+        .then(() => {
+            console.log('Getting all user notes');
+        })
+        .catch((err) => {
+            console.error(`Error getting all user notes: ${err}`);
+        });
+    }
+
+    //Create a note for authenticated user if they haven't created a note of the same name in NotesTable
+    async createNote(data) {
+        this.executeQuery(
+        `IF NOT EXISTS (SELECT * FROM NotesTable WHERE noteName = '${data.noteName}')
+        INSERT INTO NotesTable (userId, noteName, note) VALUES (${data.userId}, '${data.noteName}', '${data.note}')`
+        )
+        .then(() => {
+            console.log('Note created');
+        })
+        .catch((err) => {
+            console.error(`Error creating note: ${err}`);
+        });
+    }
+
+    //Delete a note for the authenticated user from NotesTable
+    async deleteNote(id) {
+        this.executeQuery(
+        `DELETE FROM NotesTable WHERE id = ${id}`
+        )
+        .then(() => {
+            console.log('Note deleted');
+        })
+        .catch((err) => {
+            console.error(`Error deleting note: ${err}`);
+        });    
+    }
+
+    //Update an authenticated user's note in NotesTable
+    async updateNote(data) {
+        this.executeQuery(
+         `UPDATE NotesTable SET note='${data.newNote}' WHERE id = ${data.id}`
+        )
+        .then(() => {
+            console.log('Note updated');
+        })
+        .catch((err) => {
+            console.error(`Error updating note: ${err}`);
         });
     }
 }
