@@ -124,7 +124,7 @@ export default class Database {
     //Create a note for authenticated user if they haven't created a note of the same name in NotesTable
     async createNote(data) {
         this.executeQuery(
-        `IF NOT EXISTS (SELECT * FROM NotesTable WHERE noteName = '${data.noteName}')
+        `IF NOT EXISTS (SELECT * FROM NotesTable WHERE userId = ${data.userId} AND noteName = '${data.noteName}')
         INSERT INTO NotesTable (userId, noteName, note) VALUES (${data.userId}, '${data.noteName}', '${data.note}')`
         )
         .then(() => {
