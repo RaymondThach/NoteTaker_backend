@@ -107,17 +107,18 @@ export default class Database {
         });
     }
 
+    //Get authenticated user id by user name from UsersTable
+    async getUserId(name) {
+        const request = this.poolconnection.request();
+        const result = await request.query(`SELECT id FROM UsersTable WHERE userName = '${name}'`);
+        return result.recordsets[0];
+    }
+
     //Get all notes owned by authenticated user from NotesTable
     async allNotes(userId) {
-        this.executeQuery(
-        `SELECT * FROM NotesTable WHERE userId=${userId}`
-        )
-        .then(() => {
-            console.log('Getting all user notes');
-        })
-        .catch((err) => {
-            console.error(`Error getting all user notes: ${err}`);
-        });
+        const request = this.poolconnection.request();
+        const result = await request.query(`SELECT * FROM NotesTable WHERE userId=${userId}`);
+        return result.recordsets[0];
     }
 
     //Create a note for authenticated user if they haven't created a note of the same name in NotesTable

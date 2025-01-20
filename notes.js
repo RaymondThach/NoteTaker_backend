@@ -13,9 +13,23 @@ const database = await createDatabaseConnection(SQLAuthentication);
 router.get('/all/:userId', async (req, res) => {
     try {
         const userId = req.params.userId;
+        //console.log(userId);
         const notes = await database.allNotes(userId);
+        console.log(notes);
         console.log(`notes: ${JSON.stringify(notes)}`);
         res.status(200).json(notes);
+    } catch (err) {
+        res.status(500).json({ error: err?.message });
+    }
+});
+
+//On client startup get logged in user's id
+router.get('/userId/:userName', async (req, res) => {
+    try {
+        const name = req.params.userName;
+        const id = await database.getUserId(name);
+        console.log(`id: ${JSON.stringify(id)}`);
+        res.status(200).json(id);
     } catch (err) {
         res.status(500).json({ error: err?.message });
     }
